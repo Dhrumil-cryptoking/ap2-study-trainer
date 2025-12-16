@@ -1,28 +1,111 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>A&P II Study Trainer</title>
   <style>
-    body { font-family: system-ui, Arial, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 14px; }
-    h1 { margin: 0 0 6px; }
-    .muted { opacity: 0.75; }
-    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; margin: 12px 0; }
-    .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-    .pill { border: 1px solid #ddd; border-radius: 999px; padding: 6px 10px; display: inline-block; }
-    button { padding: 10px 14px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; }
-    button.primary { border: none; background: black; color: white; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .choices label { display: block; margin: 8px 0; cursor: pointer; }
-    textarea { width: 100%; min-height: 90px; border-radius: 12px; border: 1px solid #ddd; padding: 10px; }
-    select, input[type="number"] { padding: 8px; border-radius: 10px; border: 1px solid #ddd; }
-    .grid { display: grid; gap: 10px; }
-    @media (min-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
-    .hr { height: 1px; background: #eee; margin: 12px 0; }
-    code { background: #f6f6f6; padding: 2px 6px; border-radius: 8px; }
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 14px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+    }
+
+    .muted {
+      opacity: 0.75;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+
+    .row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pill {
+      border: 1px solid #ddd;
+      border-radius: 999px;
+      padding: 6px 10px;
+      display: inline-block;
+    }
+
+    button {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border: none;
+      background: black;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .choices label {
+      display: block;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+
+    select,
+    input[type="number"] {
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    @media (min-width: 720px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .hr {
+      height: 1px;
+      background: #eee;
+      margin: 12px 0;
+    }
+
+    code {
+      background: #f6f6f6;
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
   </style>
 </head>
+
 <body>
   <h1>A&P II Study Trainer</h1>
   <div class="muted">Unit-based • randomized • MCQ + open-ended • for everyday studying</div>
@@ -49,13 +132,14 @@
               <option value="mixed">Mixed</option>
               <option value="mcq">MCQ</option>
               <option value="open">Open-ended</option>
+              <option value="chain">Chain Builder</option>
             </select>
           </span>
           <span class="pill">Questions:
-            <input id="numQ" type="number" min="5" max="200" value="25"/>
+            <input id="numQ" type="number" min="5" max="200" value="25" />
           </span>
           <span class="pill">Timer (sec, 0=off):
-            <input id="timerSec" type="number" min="0" max="180" value="0"/>
+            <input id="timerSec" type="number" min="0" max="180" value="0" />
           </span>
         </div>
 
@@ -88,9 +172,27 @@
     </div>
 
     <div id="openBlock" style="display:none;">
-      <div class="muted">Type your answer. You’ll self-check vs key points.</div>
+      <div class="muted"> Type your answer. You'll self-check vs key points.</div>
       <textarea id="openAnswer" placeholder="Write your answer here..."></textarea>
       <button class="primary" id="submitOpenBtn">Reveal key points</button>
+    </div>
+
+    <div id="chainBlock" style="display:none;">
+      <div class="muted">
+        Arrange the steps in the correct cause -> effect order.
+        Click a step to move it between columns.
+      </div>
+      <div class="row" style="align-items:flex-start; gap:12px; margin-top:10px;">
+        <div class="card" style="flex:1;">
+          <strong>Available steps</strong>
+          <div id="chainPool" style="min-height:50px; margin-top:8px;"></div>
+        </div>
+        <div class="card" style="flex:1;">
+          <strong>Your chain (top -> bottom)</strong>
+          <div id="chainPicked" style="min-height:50px; margin-top:8px;"></div>
+        </div>
+      </div>
+      <button class="primary" id="submitChainBtn" style="margin-top:10px;">submitChainBtn</button>
     </div>
 
     <div id="feedback" style="margin-top: 14px;"></div>
@@ -112,4 +214,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
