@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>A&P II Study Trainer</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 14px; }
+    h1 { margin: 0 0 6px; }
+    .muted { opacity: 0.75; }
+    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; margin: 12px 0; }
+    .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+    .pill { border: 1px solid #ddd; border-radius: 999px; padding: 6px 10px; display: inline-block; }
+    button { padding: 10px 14px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; }
+    button.primary { border: none; background: black; color: white; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .choices label { display: block; margin: 8px 0; cursor: pointer; }
+    textarea { width: 100%; min-height: 90px; border-radius: 12px; border: 1px solid #ddd; padding: 10px; }
+    select, input[type="number"] { padding: 8px; border-radius: 10px; border: 1px solid #ddd; }
+    .grid { display: grid; gap: 10px; }
+    @media (min-width: 720px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .hr { height: 1px; background: #eee; margin: 12px 0; }
+    code { background: #f6f6f6; padding: 2px 6px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>A&P II Study Trainer</h1>
+  <div class="muted">Unit-based • randomized • MCQ + open-ended • for everyday studying</div>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <strong>Units</strong>
+        <div id="unitList" class="row" style="margin-top:10px;"></div>
+        <div class="row" style="margin-top:10px;">
+          <button id="selectAllBtn">Select all</button>
+          <button id="selectNoneBtn">Select none</button>
+        </div>
+        <div class="muted" style="margin-top:10px;">
+          Tip: add more questions by editing the <code>data/*.jsonl</code> files (one JSON per line).
+        </div>
+      </div>
+
+      <div>
+        <strong>Session settings</strong>
+        <div class="row" style="margin-top:10px;">
+          <span class="pill">Mode:
+            <select id="mode">
+              <option value="mixed">Mixed</option>
+              <option value="mcq">MCQ</option>
+              <option value="open">Open-ended</option>
+            </select>
+          </span>
+          <span class="pill">Questions:
+            <input id="numQ" type="number" min="5" max="200" value="25"/>
+          </span>
+          <span class="pill">Timer (sec, 0=off):
+            <input id="timerSec" type="number" min="0" max="180" value="0"/>
+          </span>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="primary" id="startBtn">Start session</button>
+          <button id="resetBtn">Reset</button>
+        </div>
+
+        <div class="muted" id="loadStatus" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="quizArea" class="card" style="display:none;">
+    <div class="row" style="justify-content: space-between;">
+      <div>
+        <div id="qMeta" class="muted"></div>
+        <div id="qStem" style="font-size: 1.15rem; margin-top: 8px;"></div>
+      </div>
+      <div>
+        <div class="pill" id="timerPill" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div id="mcqBlock" style="display:none;">
+      <div class="choices" id="mcqChoices"></div>
+      <button class="primary" id="submitMcqBtn">Submit</button>
+    </div>
+
+    <div id="openBlock" style="display:none;">
+      <div class="muted">Type your answer. You’ll self-check vs key points.</div>
+      <textarea id="openAnswer" placeholder="Write your answer here..."></textarea>
+      <button class="primary" id="submitOpenBtn">Reveal key points</button>
+    </div>
+
+    <div id="feedback" style="margin-top: 14px;"></div>
+
+    <div class="row" style="margin-top: 12px;">
+      <button id="nextBtn" disabled>Next</button>
+      <div class="muted" id="progress"></div>
+    </div>
+  </div>
+
+  <div id="summaryArea" class="card" style="display:none;">
+    <h2 style="margin-top:0;">Session Summary</h2>
+    <div id="summaryText"></div>
+    <div class="hr"></div>
+    <div id="unitBreakdown"></div>
+    <div class="hr"></div>
+    <div id="weaknesses"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
