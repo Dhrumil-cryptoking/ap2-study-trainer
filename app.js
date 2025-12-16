@@ -139,6 +139,7 @@ function pickSessionQuestions(units, mode, n) {
 
   if (mode === "mcq") pool = pool.filter(q => q.type === "mcq");
   if (mode === "open") pool = pool.filter(q => q.type === "open");
+  if (mode === "chain") pool = pool.filter(q => q.type === "chain");
 
   shuffle(pool);
   return pool.slice(0, Math.min(n, pool.length));
@@ -157,17 +158,55 @@ function renderQuestion() {
 
   el("mcqBlock").style.display = (q.type === "mcq") ? "block" : "none";
   el("openBlock").style.display = (q.type === "open") ? "block" : "none";
+  el("chainBlock").style.display = (q.type === "chain") ? "block" : "none";
 
   if (q.type === "mcq") {
     el("qStem").textContent = q.stem;
     const choices = q.choices.map((c, i) => ({ c, i }));
     shuffle(choices);
-    el("mcqChoices").innerHTML = choices.map(({c, i}, idx) => {
-      return `<label><input type="radio" name="mcq" value="${i}"> ${String.fromCharCode(65+idx)}. ${c}</label>`;
+    el("mcqChoices").innerHTML = choices.map(({ c, i }, idx) => {
+      return `<label><input type="radio" name="mcq" value="${i}"> ${String.fromCharCode(65 + idx)}. ${c}</label>`;
     }).join("");
   } else {
     el("qStem").textContent = q.stem;
     el("openAnswer").value = "";
+  }
+
+  if (q.type === "chain") {
+    renderChainUI(q);
+  }
+  function renderChainUI(q) {
+    const poolel = el("chainPool");
+    const pickedel = el("chainPicked");
+
+    q._available = q.steps.map((_, i) => i);
+    q._picked = [];
+    shuffle(q._available);
+    function draw() {
+      poolel.innerHTML = q._available.map(i =>
+        `<div class="pill" data-i="${i}" style="cursor:pointer; margin:4px;">${q.steps[i]}</div>`
+      ).join("");
+      pickedel.innerHTML = q._picked.map(i =>
+        `<div class="pill" data-i="${i}" style="cursor:pointer; margin:4px;">${q.steps[i]}</div>`
+      ).join("");
+      poolel.querySelectorAll("div.pill").forEach(div => {
+        div.onclick = () => {
+          const i = parseInt(div.dataset.i, 10);
+          q._available = q._available.filter(x => x !== i);
+          q._picked.push(i);
+          draw();
+        };
+      });
+      pickedel.querySelectorAll(".pill").forEach(div => {
+        div.onclick = () => {
+          const i = parseInt(div.dataset.i, 10);
+          q._picked = q._picked.filter(x => x !== i);
+          q._available.push(i);
+          draw();
+        };
+      });
+    }
+    draw();
   }
 
   startTimer();
@@ -270,7 +309,7 @@ function endSession() {
   });
   el("unitBreakdown").innerHTML = `<strong>By unit</strong><div class="row" style="margin-top:10px;">${rows.join("")}</div>`;
 
-  const misses = Array.from(state.wrongCounts.entries()).sort((a,b) => b[1]-a[1]).slice(0, 7);
+  const misses = Array.from(state.wrongCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 7);
   if (misses.length === 0) {
     el("weaknesses").innerHTML = `<strong>Weaknesses</strong><div class="muted" style="margin-top:10px;">No missed MCQs logged this session.</div>`;
   } else {
@@ -297,7 +336,7 @@ async function loadSelectedUnits(units) {
       .map(q => ({
         ...q,
         unit: q.unit || unit,
-        id: q.id || q.qid || `${unit}:${norm(q.stem).slice(0,40)}`,
+        id: q.id || q.qid || `${unit}:${norm(q.stem).slice(0, 40)}`,
       }));
 
     state.bankByUnit.set(unit, cleaned);
@@ -357,6 +396,7 @@ function wireUI() {
   el("submitMcqBtn").onclick = () => submitMcq();
   el("submitOpenBtn").onclick = () => submitOpen();
   el("nextBtn").onclick = () => nextQuestion();
+  el("submitChainBtn").onclick = () => submitChain();
 }
 
 (function init() {
@@ -364,3 +404,23 @@ function wireUI() {
   wireUI();
   el("loadStatus").textContent = "Ready. Pick units and start practicing.";
 })();
+
+function submitChain() {
+  const q = state.current;
+  if (!q || q.type !== "chain") return;
+  if (q._picked.length !== q.steps.length) {
+    el("feedback").innerHTML = '<div class="card"><strong>Pick all steps in order before submitting.</strong></div> ';
+    return;
+  }
+  const correct = JSON.stringify(q._picked) === JSON.stringify(q.correct_order);
+  state.score.total++;
+  if (correct) state.score.correct++;
+  el("feedback").innerHTML = `
+  <div class="card">
+    <strong>${correct ? "✅ Correct" : "❌ Incorrect"}</strong>
+    ${!correct ? `<ol>${q.correct_order.map(i => `<li>${q.steps[i]}</li>`).join("")}</ol>` : ""}
+  <div class="muted">${q.explanation || ""}</div>
+  </div>
+`;
+  el("nextBtn").disabled = false;
+}
