@@ -26,6 +26,26 @@ const state = {
   current: null,
 };
 
+function getSelectedMode() {
+  const checked = document.querySelector('input[name="mode"]:checked');
+  return checked ? checked.value : "mcq";
+}
+
+function toggleChainPicker() {
+  const mode = getSelectedMode();
+  const picker = document.getElementById("chainTopicPicker");
+  if (!picker) return;
+  picker.style.display = (mode === "chain") ? "block" : "none";
+}
+
+// run once on load
+toggleChainPicker();
+
+// update when user changes mode
+document.querySelectorAll('input[name="mode"]').forEach(r => {
+  r.addEventListener("change", toggleChainPicker);
+});
+
 function buildUnitCheckboxes() {
   const wrap = el("unitList");
   wrap.innerHTML = "";
@@ -279,6 +299,32 @@ function nextQuestion() {
   }
   renderQuestion();
 }
+document.querySelectorAll('input[name="mode"]').forEach(r => {
+  r.addEventListener("change", toggleChainPicker);
+});
+
+document.getElementById("startBtn").addEventListener("click", () => {
+  const mode = getSelectedMode();
+  let units = [];
+
+  if (mode === "chain") {
+    units = getSelectedChainUnits();
+    if (units.length === 0) {
+      alert("Pick at least one topic for Chain mode.");
+      return;
+    }
+  } else {
+    units = Array.from(state.bankByUnit.keys());
+  }
+
+  state.sessionPool = pickSessionQuestions(units, mode, 15);
+  state.idx = 0;
+
+  document.getElementById("setupArea").style.display = "none";
+  document.getElementById("quizArea").style.display = "block";
+
+  renderQuestion();
+});
 
 function endSession() {
   stopTimer();
@@ -392,7 +438,7 @@ function wireUI() {
   el("selectNoneBtn").onclick = () => setAllUnits(false);
   el("startBtn").onclick = () => startSession();
   el("resetBtn").onclick = () => resetAll();
-
+  el("chainBlock").style.display = (q.type === "chain") ? "block" : "none";
   el("submitMcqBtn").onclick = () => submitMcq();
   el("submitOpenBtn").onclick = () => submitOpen();
   el("nextBtn").onclick = () => nextQuestion();
