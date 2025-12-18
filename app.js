@@ -165,8 +165,9 @@ function disableSubmitButtons() {
 }
 
 function enableSubmitButtons() {
-  el("submitMcqBtn").disabled = false;
-  el("submitOpenBtn").disabled = false;
+  el("submitMcqBtn")?.removeAttribute("disabled");
+  el("submitOpenBtn")?.removeAttribute("disabled");
+  el("submitChainBtn")?.removeAttribute("disabled");
 }
 
 function pickSessionQuestions(units, mode, n) {
@@ -200,12 +201,23 @@ function renderQuestion() {
   el("chainBlock").style.display = (q.type === "chain") ? "block" : "none";
 
   if (q.type === "mcq") {
+    // inside renderQuestion(), in the if (q.type === "mcq") block
     el("qStem").textContent = q.stem;
+
     const choices = q.choices.map((c, i) => ({ c, i }));
     shuffle(choices);
+
     el("mcqChoices").innerHTML = choices.map(({ c, i }, idx) => {
-      return `<label><input type="radio" name="mcq" value="${i}"> ${String.fromCharCode(65 + idx)}. ${c}</label>`;
+      const letter = String.fromCharCode(65 + idx);
+      const id = `mcq_${state.idx}_${idx}`; // unique id
+      return `
+    <label class="choice" for="${id}">
+      <input id="${id}" type="radio" name="mcq" value="${i}">
+      <span>${letter}. ${c}</span>
+    </label>
+  `;
     }).join("");
+
   } else {
     el("qStem").textContent = q.stem;
     el("openAnswer").value = "";
