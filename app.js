@@ -10,6 +10,25 @@ const UNIT_FILES = [
   ["Nervous", "data/nervous.jsonl"],
 ];
 
+const CHAIN_FILE = "data/chains.jsonl";
+async function loadChains() {
+  const res = await fetch(CHAIN_FILE);
+  if (!res.ok) throw new Error(`Failed to load ${CHAIN_FILE}`);
+  const text = await res.text();
+  const lines = text.split("\n").map(s => s.trim()).filter(Boolean);
+  // store chains in the SAME bankyByUnit map under their units
+  lines.forEach(line => {
+    const q = JSON.parse(line);
+    //force type so the filter works
+    q.type = "chain";
+    //q.unit MUST match your unit names exactly  (ex: "Endocrine")
+    if (!q.unit) return;
+    if (!state.bankByUnit.has(q.unit)) state.bankByUnit.set(q.unit, []);
+    state.bankByUnit.get(q.unit).push(q);
+  });
+}
+
+
 const el = (id) => document.getElementById(id);
 
 const state = {
@@ -470,3 +489,9 @@ function submitChain() {
 `;
   el("nextBtn").disabled = false;
 }
+async function init() {
+  await loadSelectedUnits();
+  await loadChains();
+  buildUnitCheckboxes();
+}
+init();
